@@ -1,41 +1,17 @@
-# dependencies
+# 依赖
 node_modules/
 
-# build output
+# 构建输出
 dist/
 build/
 
-# local env files
+# 环境变量
 .env
 .env.local
-.env.*.local
 
-# logs
+# 日志
 logs/
-
-# lock files
-bun.lock
-bun.lockb
-pnpm-lock.yaml
-yarn.lock
-package-lock.json
-
-# IDE
-.vscode/
-.idea/
-
-# drizzle-orm
-drizzle/
-.voasx/
-sqlite.db
-
-# video files
-*.mp4
-.hls-output/
-
-# project specific
-apps/deploykit-server/public
-apps/deploykit-server/data.json
+*.log
 
 # macOS
 .DS_Store
