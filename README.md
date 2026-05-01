@@ -14,10 +14,7 @@
 ## 快速开始
 
 ```bash
-# 安装依赖
 bun install
-
-# 启动开发服务器 (热重载)
 bun run dev
 ```
 
