@@ -1,0 +1,1 @@
+export { movieModule } from './movie'

@@ -1,0 +1,29 @@
+{
+  "name": "elysia-template",
+  "type": "module",
+  "version": "1.0.50",
+  "module": "src/index.js",
+  "scripts": {
+    "db:generate": "bunx drizzle-kit generate --dialect sqlite --schema ./src/db/schema.ts --out ./.voasx/drizzle",
+    "db:migrate": "bun run ./src/db/migrate.ts",
+    "db": "bun run db:generate && bun run db:migrate",
+    "test": "bun test",
+    "dev": "bun run src/index.ts",
+    "lint:fix": "eslint . --fix",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@elysia/cors": "^1.4.2",
+    "@elysia/eden": "^1.4.10",
+    "@elysia/openapi": "^1.4.15",
+    "drizzle-orm": "^0.45.2",
+    "elysia": "latest",
+    "logixlysia": "^6.3.2"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^8.2.0",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^10.2.1"
+  }
+}
