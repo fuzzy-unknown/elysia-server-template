@@ -22,6 +22,13 @@
       "when": 1778052451131,
       "tag": "0002_soft_xorn",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1778056291278,
+      "tag": "0003_happy_sentinel",
+      "breakpoints": true
     }
   ]
 }

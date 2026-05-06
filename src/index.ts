@@ -3,11 +3,14 @@
  *
  * 技术栈：ElysiaJS + Bun + SQLite (Drizzle ORM)
  *
- * 插件加载顺序（重要：顺序决定了中间件的执行链）：
- * 1. cors     —— 跨域支持，允许前端跨域访问 API
- * 2. requestLog —— 请求日志，记录每个 API 请求的方法、路径、耗时等信息
- * 3. openapi  —— Swagger 文档，自动根据路由和 TypeScript 类型生成 API 文档
- * 4. 业务模块 —— 所有业务路由统一挂在 /api 前缀下，按模块组织（unit、user、unit-leader）
+ * 全局中间件加载顺序：
+ * 1. cors       —— 跨域支持
+ * 2. requestLog —— 请求日志（derive + onAfterHandle + onError）
+ * 3. openapi    —— Swagger API 文档（/openapi）
+ *
+ * 各业务模块内部通过 .use(authPlugin) 按需加载 JWT 认证
+ *
+ * 业务模块（/api 前缀）：unit、user、room、unit-leader、housing-application、approval-record
  *
  * 项目结构：
  *   src/
@@ -19,7 +22,7 @@
 import { cors } from '@elysia/cors'
 import { openapi } from '@elysia/openapi'
 import { Elysia } from 'elysia'
-import { roomModule, unitLeaderModule, unitModule, userModule } from './modules'
+import { approvalRecordModule, housingApplicationModule, roomModule, unitLeaderModule, unitModule, userModule } from './modules'
 import { requestLog } from './plugins/request-log'
 
 const app = new Elysia()
@@ -28,7 +31,7 @@ const app = new Elysia()
   // 访问 /openapi 可查看自动生成的 Swagger API 文档
   .use(openapi())
   // 业务模块统一注册到 /api 前缀下，便于前端统一代理和权限控制
-  .use(new Elysia({ prefix: '/api' }).use(unitModule).use(userModule).use(roomModule).use(unitLeaderModule))
+  .use(new Elysia({ prefix: '/api' }).use(unitModule).use(userModule).use(roomModule).use(unitLeaderModule).use(housingApplicationModule).use(approvalRecordModule))
   .get('/', () => 'Hello World !')
   .listen(3010)
 

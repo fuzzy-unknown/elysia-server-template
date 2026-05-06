@@ -7,11 +7,15 @@
  * - 新增模块时，在此处注册即可自动挂载到 /api 前缀下
  */
 import { db } from '../db'
+import { createApprovalRecordRouter } from './approval-record'
+import { createHousingApplicationRouter } from './housing-application'
 import { createRoomRouter } from './room'
 import { createUnitRouter } from './unit'
 import { createUnitLeaderRouter } from './unit-leader'
 import { createUserRouter } from './user'
 
+export const approvalRecordModule = createApprovalRecordRouter(db)
+export const housingApplicationModule = createHousingApplicationRouter(db)
 export const roomModule = createRoomRouter(db)
 export const unitLeaderModule = createUnitLeaderRouter(db)
 export const unitModule = createUnitRouter(db)

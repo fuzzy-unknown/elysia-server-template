@@ -225,3 +225,144 @@ export const unitLeadersRelations = relations(unitLeaders, ({ one }) => ({
     references: [users.id],
   }),
 }))
+
+/**
+ * 住房申请表
+ *
+ * 状态流转：
+ * pending → approved（审批通过，待分配房间）→ completed（已分配房间）
+ *       → rejected（被驳回）
+ *       → cancelled（申请人主动取消）
+ */
+export const housingApplications = sqliteTable('housing_applications', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 申请人 ID */
+  applicantId: text('applicant_id').references(() => users.id).notNull(),
+
+  /** 申请原因 */
+  reason: text('reason').notNull(),
+
+  /** 入住时间 */
+  checkInDate: integer('check_in_date', { mode: 'timestamp' }).notNull(),
+
+  /** 离开时间 */
+  checkOutDate: integer('check_out_date', { mode: 'timestamp' }).notNull(),
+
+  /** 分配的房间 ID（审批通过后手动分配） */
+  roomId: text('room_id').references(() => rooms.id),
+
+  /** 申请状态 */
+  status: text('status', { enum: ['pending', 'approved', 'rejected', 'cancelled', 'completed'] }).notNull().$defaultFn(() => 'pending'),
+
+  /** 备注 */
+  remark: text('remark'),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 更新时间 */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$onUpdateFn(() => new Date()),
+
+  /** 软删除时间 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 加速按申请人查询 */
+  index('idx_housing_applications_applicant_id').on(table.applicantId),
+  /** 加速按房间查询 */
+  index('idx_housing_applications_room_id').on(table.roomId),
+  /** 加速按状态查询 */
+  index('idx_housing_applications_status').on(table.status),
+])
+
+/**
+ * 审批记录表
+ *
+ * 状态流转：
+ * pending → approved / rejected
+ */
+export const approvalRecords = sqliteTable('approval_records', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 关联申请 ID */
+  applicationId: text('application_id').references(() => housingApplications.id).notNull(),
+
+  /** 审批步骤（1=直属单位，2=上级单位） */
+  step: integer('step').notNull(),
+
+  /** 目标审批单位 ID */
+  targetUnitId: text('target_unit_id').references(() => units.id).notNull(),
+
+  /** 实际审批人 ID（审批时填入） */
+  approverId: text('approver_id').references(() => users.id),
+
+  /** 审批状态 */
+  status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().$defaultFn(() => 'pending'),
+
+  /** 审批意见 */
+  comment: text('comment'),
+
+  /** 审批时间 */
+  approvedAt: integer('approved_at', { mode: 'timestamp' }),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 更新时间 */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$onUpdateFn(() => new Date()),
+
+  /** 软删除时间 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 加速按申请查询审批记录 */
+  index('idx_approval_records_application_id').on(table.applicationId),
+  /** 加速按审批单位查询 */
+  index('idx_approval_records_target_unit_id').on(table.targetUnitId),
+  /** 加速按审批人查询 */
+  index('idx_approval_records_approver_id').on(table.approverId),
+  /** 联合索引：同一申请的同一审批步骤只有一条记录 */
+  uniqueIndex('idx_approval_records_app_step').on(table.applicationId, table.step),
+])
+
+// ==================== 关联关系（补充） ====================
+
+/**
+ * 住房申请关联关系
+ * - 每个申请 属于 一个申请人（多对一）
+ * - 每个申请 关联 一个房间（多对一，可选）
+ * - 每个申请 拥有 多条审批记录（一对多）
+ */
+export const housingApplicationsRelations = relations(housingApplications, ({ one, many }) => ({
+  applicant: one(users, {
+    fields: [housingApplications.applicantId],
+    references: [users.id],
+  }),
+  room: one(rooms, {
+    fields: [housingApplications.roomId],
+    references: [rooms.id],
+  }),
+  approvalRecords: many(approvalRecords),
+}))
+
+/**
+ * 审批记录关联关系
+ * - 每条记录 属于 一个申请（多对一）
+ * - 每条记录 属于 一个审批单位（多对一）
+ * - 每条记录 属于 一个审批人（多对一，可选）
+ */
+export const approvalRecordsRelations = relations(approvalRecords, ({ one }) => ({
+  application: one(housingApplications, {
+    fields: [approvalRecords.applicationId],
+    references: [housingApplications.id],
+  }),
+  targetUnit: one(units, {
+    fields: [approvalRecords.targetUnitId],
+    references: [units.id],
+  }),
+  approver: one(users, {
+    fields: [approvalRecords.approverId],
+    references: [users.id],
+  }),
+}))
