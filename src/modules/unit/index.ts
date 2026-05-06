@@ -1,3 +1,19 @@
+/**
+ * 单位管理路由层
+ *
+ * 路由设计：
+ * - GET    /units        获取所有单位（扁平列表）
+ * - GET    /units/tree   获取单位树形结构
+ * - GET    /units/:id    获取单个单位详情
+ * - POST   /units        创建单位（需认证 isSignIn）
+ * - PUT    /units/:id    更新单位（需认证 isSignIn）
+ * - DELETE /units/:id    软删除单位（需认证 isSignIn）
+ *
+ * 工厂函数模式：createUnitRouter(db)
+ * - 接收 drizzle 数据库实例，实例化 UnitService，将路由与 service 解耦
+ * - 通过 .decorate() 将 service 注入到路由上下文，避免手动传参
+ * - 通过 .model() 注册 TypeScript 类型 schema，启用请求/响应的运行时校验
+ */
 import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import { Elysia, t } from 'elysia'
 import { CreateUnit, Unit, UnitError, UpdateUnit } from './model'
