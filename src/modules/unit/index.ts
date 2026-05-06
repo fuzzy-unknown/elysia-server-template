@@ -16,6 +16,7 @@
  */
 import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import { Elysia, t } from 'elysia'
+import { authPlugin } from '../../plugins/auth'
 import { CreateUnit, Unit, UnitError, UpdateUnit } from './model'
 import { UnitService } from './service'
 
@@ -23,6 +24,7 @@ export function createUnitRouter(database: BunSQLiteDatabase) {
   const unitService = new UnitService(database)
 
   return new Elysia({ prefix: '/units' })
+    .use(authPlugin)
     .decorate({ unitService })
     .model({
       'unit': Unit,

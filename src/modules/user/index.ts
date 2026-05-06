@@ -16,6 +16,7 @@
 import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import type { UserType } from './model'
 import { Elysia, t } from 'elysia'
+import { authPlugin } from '../../plugins/auth'
 import { CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
 import { UserService } from './service'
 
@@ -29,6 +30,7 @@ export function createUserRouter(database: BunSQLiteDatabase) {
   const userService = new UserService(database)
 
   return new Elysia({ prefix: '/users' })
+    .use(authPlugin)
     .decorate({ userService })
     .model({
       'user.response': UserResponse,

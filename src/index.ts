@@ -21,7 +21,6 @@ import { cors } from '@elysia/cors'
 import { openapi } from '@elysia/openapi'
 import { Elysia } from 'elysia'
 import { unitModule, userModule } from './modules'
-import { authPlugin } from './plugins/auth'
 import { requestLog } from './plugins/request-log'
 
 const app = new Elysia()
@@ -29,16 +28,14 @@ const app = new Elysia()
   .use(requestLog)
   // 访问 /openapi 可查看自动生成的 Swagger API 文档
   .use(openapi())
-  // JWT 认证插件：注册 jwt 实例 + isSignIn 宏，供路由声明式鉴权
-  .use(authPlugin)
   // 业务模块统一注册到 /api 前缀下，便于前端统一代理和权限控制
   .use(new Elysia({ prefix: '/api' }).use(unitModule).use(userModule))
   .get('/', () => 'Hello World !')
   .listen(3010)
 
 console.log(`
-http://${app.server?.hostname}:${app.server?.port}
-http://${app.server?.hostname}:${app.server?.port}/openapi
+${app.server?.hostname}:${app.server?.port}
+${app.server?.hostname}:${app.server?.port}/openapi
 `)
 
 // 导出 app 实例和类型，供 Eden Treaty 等端到端类型安全客户端使用
