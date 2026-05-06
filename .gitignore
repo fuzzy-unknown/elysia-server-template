@@ -15,3 +15,5 @@ logs/
 
 # macOS
 .DS_Store
+
+sqlite.db

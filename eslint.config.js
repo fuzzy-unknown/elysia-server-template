@@ -1,7 +1,7 @@
 import antfu from '@antfu/eslint-config'
 
 export default antfu({
-  ignores: ['.vscode', 'node_modules', 'README.md'],
+  ignores: ['.vscode', 'node_modules', 'README.md', 'drizzle'],
   rules: {
     'no-console': 'off',
     'node/prefer-global/process': 'off',
