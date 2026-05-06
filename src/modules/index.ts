@@ -8,6 +8,7 @@
  */
 import { db } from '../db'
 import { createApprovalRecordRouter } from './approval-record'
+import { createGroupRouter } from './group'
 import { createHousingApplicationRouter } from './housing-application'
 import { createRoomRouter } from './room'
 import { createUnitRouter } from './unit'
@@ -15,6 +16,7 @@ import { createUnitLeaderRouter } from './unit-leader'
 import { createUserRouter } from './user'
 
 export const approvalRecordModule = createApprovalRecordRouter(db)
+export const groupModule = createGroupRouter(db)
 export const housingApplicationModule = createHousingApplicationRouter(db)
 export const roomModule = createRoomRouter(db)
 export const unitLeaderModule = createUnitLeaderRouter(db)

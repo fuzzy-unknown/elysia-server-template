@@ -366,3 +366,106 @@ export const approvalRecordsRelations = relations(approvalRecords, ({ one }) => 
     references: [users.id],
   }),
 }))
+
+/**
+ * 组表
+ *
+ * 组是临时性的用户集合，用于跨单位协作或项目管理。
+ * 一个用户可以属于多个组（多对多关系）。
+ */
+export const groups = sqliteTable('groups', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 组名称 */
+  name: text('name').notNull(),
+
+  /** 组描述 */
+  description: text('description'),
+
+  /** 创建者 ID */
+  createdBy: text('created_by').references(() => users.id).notNull(),
+
+  /** 组状态：true-启用，false-停用 */
+  status: integer('status', { mode: 'boolean' }).notNull().$defaultFn(() => true),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 更新时间 */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$onUpdateFn(() => new Date()),
+
+  /** 软删除时间 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 加速按名称查询 */
+  index('idx_groups_name').on(table.name),
+  /** 加速按创建者查询 */
+  index('idx_groups_created_by').on(table.createdBy),
+])
+
+/**
+ * 用户 - 组关联表（多对多中间表）
+ *
+ * 一个用户可以属于多个组，一个组可以包含多个用户。
+ */
+export const userGroups = sqliteTable('user_groups', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 用户 ID */
+  userId: text('user_id').references(() => users.id).notNull(),
+
+  /** 组 ID */
+  groupId: text('group_id').references(() => groups.id).notNull(),
+
+  /** 角色/头衔（可选），如：组长、成员 */
+  role: text('role'),
+
+  /** 加入时间 */
+  joinedAt: integer('joined_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 软删除时间，为 null 表示在组内 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 联合唯一索引：同一用户在同一组中只能有一条记录 */
+  uniqueIndex('idx_user_groups_user_group').on(table.userId, table.groupId),
+  /** 加速按用户查询其所属组 */
+  index('idx_user_groups_user_id').on(table.userId),
+  /** 加速按组查询其成员 */
+  index('idx_user_groups_group_id').on(table.groupId),
+])
+
+// ==================== 关联关系（补充） ====================
+
+/**
+ * 组关联关系
+ * - 每个组 属于 一个创建者（多对一）
+ * - 每个组 拥有 多个用户（通过 user_groups 中间表，一对多）
+ */
+export const groupsRelations = relations(groups, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [groups.createdBy],
+    references: [users.id],
+  }),
+  members: many(userGroups),
+}))
+
+/**
+ * 用户 - 组关联关系
+ * - 每条记录 属于 一个用户（多对一）
+ * - 每条记录 属于 一个组（多对一）
+ */
+export const userGroupsRelations = relations(userGroups, ({ one }) => ({
+  user: one(users, {
+    fields: [userGroups.userId],
+    references: [users.id],
+  }),
+  group: one(groups, {
+    fields: [userGroups.groupId],
+    references: [groups.id],
+  }),
+}))

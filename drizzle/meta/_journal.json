@@ -29,6 +29,13 @@
       "when": 1778056291278,
       "tag": "0003_happy_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1778056931283,
+      "tag": "0004_giant_angel",
+      "breakpoints": true
     }
   ]
 }
