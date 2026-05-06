@@ -16,4 +16,11 @@ logs/
 # macOS
 .DS_Store
 
+# 数据库
 sqlite.db
+
+# IDE
+.idea/
+
+# Claude Code
+.claude/
