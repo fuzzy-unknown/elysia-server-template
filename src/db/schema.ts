@@ -2,6 +2,8 @@ import { relations } from 'drizzle-orm'
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 import { nanoid } from 'nanoid'
 
+// ==================== 表定义 ====================
+
 /**
  * 单位表（树形结构）
  * 管理用户所属的组织/单位信息，支持多级层级
@@ -93,10 +95,92 @@ export const users = sqliteTable('users', {
 ])
 
 /**
+ * 房间表
+ * 管理临时住房的房间信息
+ *
+ * roomType 房间类型：
+ * - 'single'  单人房
+ * - 'double'  双人房
+ * - 'luxury'  豪华房
+ *
+ * status 房间状态：
+ * - 'in_use'      使用中
+ * - 'idle'        空闲
+ * - 'maintenance' 维修中
+ */
+export const rooms = sqliteTable('rooms', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 房间号，唯一标识一间房，如：'301'、'A-1201' */
+  roomNumber: text('room_number').notNull(),
+
+  /** 房间类型：single-单人房，double-双人房，luxury-豪华房 */
+  roomType: text('room_type', { enum: ['single', 'double', 'luxury'] }).notNull(),
+
+  /** 房间状态：in_use-使用中，idle-空闲，maintenance-维修中 */
+  status: text('room_status', { enum: ['in_use', 'idle', 'maintenance'] }).notNull().$defaultFn(() => 'idle'),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 更新时间，每次更新记录时自动刷新 */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$onUpdateFn(() => new Date()),
+
+  /** 软删除时间，为 null 表示未删除 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 房间号唯一索引，防止重复录入 */
+  uniqueIndex('idx_rooms_room_number').on(table.roomNumber),
+])
+
+/**
+ * 单位负责人中间表（单位 ↔ 用户 多对多）
+ *
+ * 一个单位可以有多个负责人，通过 sort 字段排序体现地位高低：
+ * - sort=0  第一负责人（正职）
+ * - sort=1  第二负责人（副职）
+ * - sort=2  第三负责人
+ * - ...以此类推
+ */
+export const unitLeaders = sqliteTable('unit_leaders', {
+  /** 主键，使用 nanoid 生成唯一标识 */
+  id: text('id').primaryKey().$defaultFn(() => nanoid()),
+
+  /** 所属单位 ID */
+  unitId: text('unit_id').references(() => units.id).notNull(),
+
+  /** 负责人用户 ID */
+  userId: text('user_id').references(() => users.id).notNull(),
+
+  /** 排序，数值越小地位越高，默认 0 */
+  sort: integer('sort').notNull().$defaultFn(() => 0),
+
+  /** 创建时间 */
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+
+  /** 更新时间，每次更新记录时自动刷新 */
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$onUpdateFn(() => new Date()),
+
+  /** 软删除时间，为 null 表示未删除 */
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+}, table => [
+  /** 同一单位内不能重复指定同一用户为负责人 */
+  uniqueIndex('idx_unit_leaders_unit_user').on(table.unitId, table.userId),
+  /** 加速按单位查询负责人 */
+  index('idx_unit_leaders_unit_id').on(table.unitId),
+  /** 加速按用户查询其负责的单位 */
+  index('idx_unit_leaders_user_id').on(table.userId),
+])
+
+// ==================== 关联关系 ====================
+
+/**
  * 单位关联关系
  * - 一个单位 拥有 多个用户（一对多）
  * - 一个单位 拥有 多个子单位（一对多，自引用）
  * - 一个单位 属于 一个父级单位（多对一，自引用）
+ * - 一个单位 拥有 多个负责人（通过 unit_leaders 中间表）
  */
 export const unitsRelations = relations(units, ({ many, one }) => ({
   /** 单位下的所有用户 */
@@ -111,6 +195,8 @@ export const unitsRelations = relations(units, ({ many, one }) => ({
   children: many(units, {
     relationName: 'unitHierarchy',
   }),
+  /** 单位的负责人列表 */
+  leaders: many(unitLeaders),
 }))
 
 /**
@@ -121,5 +207,21 @@ export const usersRelations = relations(users, ({ one }) => ({
   unit: one(units, {
     fields: [users.unitId],
     references: [units.id],
+  }),
+}))
+
+/**
+ * 负责人记录关联关系
+ * - 每条负责人记录 属于 一个单位（多对一）
+ * - 每条负责人记录 关联 一个用户（多对一）
+ */
+export const unitLeadersRelations = relations(unitLeaders, ({ one }) => ({
+  unit: one(units, {
+    fields: [unitLeaders.unitId],
+    references: [units.id],
+  }),
+  user: one(users, {
+    fields: [unitLeaders.userId],
+    references: [users.id],
   }),
 }))

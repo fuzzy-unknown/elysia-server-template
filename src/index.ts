@@ -7,8 +7,7 @@
  * 1. cors     —— 跨域支持，允许前端跨域访问 API
  * 2. requestLog —— 请求日志，记录每个 API 请求的方法、路径、耗时等信息
  * 3. openapi  —— Swagger 文档，自动根据路由和 TypeScript 类型生成 API 文档
- * 4. authPlugin —— JWT 认证，提供 jwt 签发/验证能力和 isSignIn 宏用于路由守卫
- * 5. 业务模块 —— 所有业务路由统一挂在 /api 前缀下，按模块组织（unit、user）
+ * 4. 业务模块 —— 所有业务路由统一挂在 /api 前缀下，按模块组织（unit、user、unit-leader）
  *
  * 项目结构：
  *   src/
@@ -20,7 +19,7 @@
 import { cors } from '@elysia/cors'
 import { openapi } from '@elysia/openapi'
 import { Elysia } from 'elysia'
-import { unitModule, userModule } from './modules'
+import { roomModule, unitLeaderModule, unitModule, userModule } from './modules'
 import { requestLog } from './plugins/request-log'
 
 const app = new Elysia()
@@ -29,7 +28,7 @@ const app = new Elysia()
   // 访问 /openapi 可查看自动生成的 Swagger API 文档
   .use(openapi())
   // 业务模块统一注册到 /api 前缀下，便于前端统一代理和权限控制
-  .use(new Elysia({ prefix: '/api' }).use(unitModule).use(userModule))
+  .use(new Elysia({ prefix: '/api' }).use(unitModule).use(userModule).use(roomModule).use(unitLeaderModule))
   .get('/', () => 'Hello World !')
   .listen(3010)
 

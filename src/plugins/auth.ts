@@ -39,6 +39,9 @@ if (!JWT_SECRET) {
   process.exit(1)
 }
 
+// process.exit(1) 后代码不可达，但 TS 无法推断，通过断言告知编译器 secret 一定存在
+const secret = JWT_SECRET
+
 // 插件命名 plugin:auth，确保在 Elysia 生命周期中唯一注册一次
 export const authPlugin = new Elysia({ name: 'plugin:auth' })
   // 解析 Authorization: Bearer <token> 头，将 token 存入 context.bearer
@@ -47,7 +50,7 @@ export const authPlugin = new Elysia({ name: 'plugin:auth' })
   .use(
     jwt({
       name: 'jwt',
-      secret: JWT_SECRET!,
+      secret,
       exp: '7d',
       // 定义 token payload 的类型结构，启用类型推断
       schema: t.Object({
