@@ -1,0 +1,18 @@
+{
+  "editor.lineNumbers": "interval",
+  "workbench.list.smoothScrolling": true,
+  "workbench.tree.indent": 10,
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "package.json": "package-lock.json, skills-lock.json, pnpm-lock.yaml, yarn.lock, sqlite.db, *.sqlite, *.db, tsconfig.json, eslint.config.js, bun.lock, .gitignore, drizzle.config.ts, .env, .env.example, README.md",
+  },
+  "files.exclude": {
+    ".agents": true,
+    ".idea": true,
+    ".claude": true,
+    "drizzle": true,
+    "logs": true,
+    "node_modules": true,
+  }
+}
