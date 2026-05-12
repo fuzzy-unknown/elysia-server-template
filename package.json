@@ -1,5 +1,5 @@
 {
-  "name": "elysia-template",
+  "name": "elysia-server-template",
   "type": "module",
   "version": "1.0.50",
   "module": "src/index.js",

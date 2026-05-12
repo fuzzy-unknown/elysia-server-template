@@ -1,96 +1,9 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "585cdd97-111d-47d6-9459-27d83fb072cf",
+  "id": "15d78624-8625-49cb-99cb-199292d2589c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "units": {
-      "name": "units",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "short_name": {
-          "name": "short_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "parent_id": {
-          "name": "parent_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "status": {
-          "name": "status",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "remark": {
-          "name": "remark",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "units_parent_id_units_id_fk": {
-          "name": "units_parent_id_units_id_fk",
-          "tableFrom": "units",
-          "tableTo": "units",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
     "users": {
       "name": "users",
       "columns": {
@@ -105,32 +18,95 @@
           "name": "username",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "password": {
           "name": "password",
           "type": "text",
           "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "nickname": {
+          "name": "nickname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "avatar": {
+          "name": "avatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "gender": {
+          "name": "gender",
+          "type": "integer",
+          "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "id_card": {
-          "name": "id_card",
+        "birthday": {
+          "name": "birthday",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "unit_id": {
-          "name": "unit_id",
+        "device_type": {
+          "name": "device_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "device_model": {
+          "name": "device_model",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "level": {
-          "name": "level",
+        "app_version": {
+          "name": "app_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "os_version": {
+          "name": "os_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_login_at": {
+          "name": "last_login_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_login_ip": {
+          "name": "last_login_ip",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -141,13 +117,6 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "remark": {
-          "name": "remark",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -180,36 +149,29 @@
           ],
           "isUnique": true
         },
-        "idx_users_id_card": {
-          "name": "idx_users_id_card",
+        "idx_users_phone": {
+          "name": "idx_users_phone",
           "columns": [
-            "id_card"
+            "phone"
           ],
           "isUnique": true
         },
-        "idx_users_unit_id": {
-          "name": "idx_users_unit_id",
+        "idx_users_email": {
+          "name": "idx_users_email",
           "columns": [
-            "unit_id"
+            "email"
+          ],
+          "isUnique": true
+        },
+        "idx_users_last_login": {
+          "name": "idx_users_last_login",
+          "columns": [
+            "last_login_at"
           ],
           "isUnique": false
         }
       },
-      "foreignKeys": {
-        "users_unit_id_units_id_fk": {
-          "name": "users_unit_id_units_id_fk",
-          "tableFrom": "users",
-          "tableTo": "units",
-          "columnsFrom": [
-            "unit_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

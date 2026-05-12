@@ -31,17 +31,15 @@ describe('User CRUD', () => {
     const { data, error, response } = await client.api.users.post({
       username: 'testuser',
       password: '123456',
-      idCard: '110101199001011234',
-      level: 'A',
-      remark: '测试用户',
+      nickname: '测试用户',
+      gender: 1,
     })
     expect(error).toBeNull()
     expect(response.status).toBe(201)
     expect(data).toMatchObject({
       username: 'testuser',
-      idCard: '110101199001011234',
-      level: 'A',
-      remark: '测试用户',
+      nickname: '测试用户',
+      gender: 1,
       status: true,
     })
     // 确保响应不包含密码
@@ -57,11 +55,8 @@ describe('User CRUD', () => {
     expect(error).toBeNull()
     expect(data).toMatchObject({
       username: 'minimal',
-      idCard: null,
-      unitId: null,
-      level: null,
+      gender: 0,
       status: true,
-      remark: null,
     })
   })
 
@@ -87,11 +82,11 @@ describe('User CRUD', () => {
 
     const { data, error } = await client.api.users({ id }).put({
       username: 'newname',
-      level: 'B',
-      remark: '已更新',
+      nickname: '已更新',
+      gender: 2,
     })
     expect(error).toBeNull()
-    expect(data).toMatchObject({ id, username: 'newname', level: 'B', remark: '已更新' })
+    expect(data).toMatchObject({ id, username: 'newname', nickname: '已更新', gender: 2 })
     expect(data).not.toHaveProperty('password')
   })
 
