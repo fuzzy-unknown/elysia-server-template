@@ -30,7 +30,7 @@ describe('User CRUD', () => {
   it('POST /api/users - 创建用户', async () => {
     const { data, error, response } = await client.api.users.post({
       username: 'testuser',
-      password: '123456',
+      password: 'TestPass123',
       nickname: '测试用户',
       gender: 1,
     })
@@ -50,7 +50,7 @@ describe('User CRUD', () => {
   it('POST /api/users - 仅必填字段创建', async () => {
     const { data, error } = await client.api.users.post({
       username: 'minimal',
-      password: 'abcdef',
+      password: 'MinimalPass1',
     })
     expect(error).toBeNull()
     expect(data).toMatchObject({
@@ -61,7 +61,7 @@ describe('User CRUD', () => {
   })
 
   it('GET /api/users/:id - 获取用户详情', async () => {
-    const created = await client.api.users.post({ username: 'zhangsan', password: '123456' })
+    const created = await client.api.users.post({ username: 'zhangsan', password: 'TestPass123' })
     const id = created.data!.id
 
     const { data, error } = await client.api.users({ id }).get()
@@ -77,7 +77,7 @@ describe('User CRUD', () => {
   })
 
   it('PUT /api/users/:id - 更新用户', async () => {
-    const created = await client.api.users.post({ username: 'oldname', password: '123456' })
+    const created = await client.api.users.post({ username: 'oldname', password: 'TestPass123' })
     const id = created.data!.id
 
     const { data, error } = await client.api.users({ id }).put({
@@ -97,7 +97,7 @@ describe('User CRUD', () => {
   })
 
   it('PUT /api/users/:id - 更新状态为停用', async () => {
-    const created = await client.api.users.post({ username: 'disableme', password: '123456' })
+    const created = await client.api.users.post({ username: 'disableme', password: 'TestPass123' })
     const id = created.data!.id
 
     const { data, error } = await client.api.users({ id }).put({ status: false })
@@ -106,7 +106,7 @@ describe('User CRUD', () => {
   })
 
   it('DELETE /api/users/:id - 软删除用户', async () => {
-    const created = await client.api.users.post({ username: 'deleteme', password: '123456' })
+    const created = await client.api.users.post({ username: 'deleteme', password: 'TestPass123' })
     const id = created.data!.id
 
     const { data, error } = await client.api.users({ id }).delete()
@@ -133,14 +133,14 @@ describe('User CRUD', () => {
   })
 
   it('POST /api/users - 验证失败（用户名为空）', async () => {
-    const { error, response } = await client.api.users.post({ username: '', password: '123456' })
+    const { error, response } = await client.api.users.post({ username: '', password: 'TestPass123' })
     expect(response.status).toBe(422)
     expect(error).toBeTruthy()
   })
 
   it('GET /api/users - 所有用户响应不含密码', async () => {
-    await client.api.users.post({ username: 'user1', password: 'pass111' })
-    await client.api.users.post({ username: 'user2', password: 'pass222' })
+    await client.api.users.post({ username: 'user1', password: 'Pass1User1' })
+    await client.api.users.post({ username: 'user2', password: 'Pass2User2' })
 
     const { data } = await client.api.users.get()
     for (const user of data!) {

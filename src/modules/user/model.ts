@@ -47,7 +47,11 @@ export const CreateUser = t.Object({
   username: t.Optional(t.String({ minLength: 1, maxLength: 50, description: '用户名' })),
   phone: t.Optional(t.String({ minLength: 11, maxLength: 11, description: '手机号（11 位）' })),
   email: t.Optional(t.String({ format: 'email', description: '邮箱' })),
-  password: t.String({ minLength: 6, maxLength: 100, description: '密码（最少 6 位）' }),
+  password: t.String({
+    minLength: 8,
+    maxLength: 100,
+    description: '密码（最少 8 位，必须包含大小写字母和数字）',
+  }),
   nickname: t.Optional(t.String({ maxLength: 50, description: '昵称' })),
   avatar: t.Optional(t.String({ description: '头像 URL' })),
   gender: t.Optional(t.Integer({ minimum: 0, maximum: 2, description: '性别：0-未知，1-男，2-女' })),

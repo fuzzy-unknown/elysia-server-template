@@ -4,7 +4,7 @@ import type { UserType } from './model'
 import { Elysia, t } from 'elysia'
 import { strictRateLimit } from '../../middleware/rate-limit'
 import { authPlugin } from '../../plugins/auth'
-import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage } from '../../utils'
+import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage, validatePassword } from '../../utils'
 import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UpdateUser, UserError, UserResponse } from './model'
 import { userService } from './service'
 
@@ -98,18 +98,25 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       },
     })
     .post('/', async ({ body, status }) => {
+      // 验证密码强度
+      const passwordValidation = validatePassword(body.password)
+      if (!passwordValidation.valid) {
+        return status(400, { message: passwordValidation.errors.join(', ') })
+      }
+
       const user = await userService.create(database, body)
       return status(201, omitPassword(user))
     }, {
       isSignIn: true,
       detail: {
         summary: '创建用户',
-        description: '创建新用户账号。用户名、手机号、邮箱至少填写一项，密码最少 6 位。',
+        description: '创建新用户账号。用户名、手机号、邮箱至少填写一项，密码最少 8 位且包含大小写字母和数字。',
         tags: ['用户管理'],
       },
       body: CreateUser,
       response: {
         201: UserResponse,
+        400: UserError,
       },
     })
     .put('/:id', async ({ params: { id }, body, status }) => {
