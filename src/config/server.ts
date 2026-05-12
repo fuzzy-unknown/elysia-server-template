@@ -3,7 +3,7 @@ export const serverConfig = {
   /** 服务器端口 */
   port: 3010,
 
-  /** API 前缀 */
+  /** API 前缀 默认：/api */
   apiPrefix: '/api',
 
   /** CORS 配置 */

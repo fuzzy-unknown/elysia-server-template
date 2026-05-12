@@ -81,9 +81,16 @@ export const UserError = t.Object({
   message: t.String({ description: '错误信息' }),
 })
 
+/** 头像上传响应 */
+export const AvatarUploadResponse = t.Object({
+  message: t.String({ description: '提示信息' }),
+  avatar: t.String({ description: '头像 URL' }),
+})
+
 export type UserType = typeof User.static
 export type UserResponseType = typeof UserResponse.static
 export type CreateUserType = typeof CreateUser.static
 export type UpdateUserType = typeof UpdateUser.static
 export type LoginRequestType = typeof LoginRequest.static
 export type LoginResponseType = typeof LoginResponse.static
+export type AvatarUploadResponseType = typeof AvatarUploadResponse.static

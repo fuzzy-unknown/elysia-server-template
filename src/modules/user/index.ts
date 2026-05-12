@@ -1,11 +1,10 @@
 import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import type { UserType } from './model'
 /** 用户管理路由层 */
-import { staticPlugin } from '@elysia/static'
 import { Elysia, t } from 'elysia'
 import { authPlugin } from '../../plugins/auth'
 import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage } from '../../utils'
-import { CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
+import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
 import { userService } from './service'
 
 function omitPassword(user: UserType) {
@@ -18,13 +17,6 @@ export function createUserRouter(database: BunSQLiteDatabase) {
   ensureDir('uploads/avatars')
 
   return new Elysia({ prefix: '/users' })
-    // 静态文件服务，用于访问上传的头像
-    .use(
-      staticPlugin({
-        assets: 'uploads/avatars',
-        prefix: '/avatars',
-      }),
-    )
     .use(authPlugin)
     .model({
       'user.response': UserResponse,
@@ -63,7 +55,10 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         tags: ['用户管理'],
       },
       body: LoginRequest,
-      response: { 200: LoginResponse, 401: UserError },
+      response: {
+        200: LoginResponse,
+        401: UserError,
+      },
     })
     .get('/', () => userService.getAll(database).map(omitPassword), {
       detail: {
@@ -71,7 +66,9 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         description: '返回所有未删除的用户列表，响应中不包含密码字段',
         tags: ['用户管理'],
       },
-      response: { 200: t.Array(UserResponse) },
+      response: {
+        200: t.Array(UserResponse),
+      },
     })
     .get('/:id', ({ params: { id }, status }) => {
       const user = userService.getById(database, id)
@@ -84,8 +81,13 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         description: '通过用户 ID 查询用户的详细信息，响应中不包含密码字段',
         tags: ['用户管理'],
       },
-      params: t.Object({ id: t.String({ description: '用户 ID' }) }),
-      response: { 200: UserResponse, 404: UserError },
+      params: t.Object({
+        id: t.String({ description: '用户 ID' }),
+      }),
+      response: {
+        200: UserResponse,
+        404: UserError,
+      },
     })
     .post('/', async ({ body, status }) => {
       const user = await userService.create(database, body)
@@ -98,7 +100,9 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         tags: ['用户管理'],
       },
       body: CreateUser,
-      response: { 201: UserResponse },
+      response: {
+        201: UserResponse,
+      },
     })
     .put('/:id', async ({ params: { id }, body, status }) => {
       const user = await userService.update(database, id, body)
@@ -112,9 +116,14 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         description: '更新指定用户的信息。所有字段均为可选。',
         tags: ['用户管理'],
       },
-      params: t.Object({ id: t.String({ description: '用户 ID' }) }),
+      params: t.Object({
+        id: t.String({ description: '用户 ID' }),
+      }),
       body: UpdateUser,
-      response: { 200: UserResponse, 404: UserError },
+      response: {
+        200: UserResponse,
+        404: UserError,
+      },
     })
     .delete('/:id', ({ params: { id }, status }) => {
       const user = userService.remove(database, id)
@@ -125,11 +134,16 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       isSignIn: true,
       detail: {
         summary: '删除用户（软删除）',
-        description: '软删除指定用户，设置 deletedAt 时间戳。',
+        description: '软删除指定用户，设置 deletedAt 时间戳。删除后用户无法登录。',
         tags: ['用户管理'],
       },
-      params: t.Object({ id: t.String({ description: '用户 ID' }) }),
-      response: { 200: UserResponse, 404: UserError },
+      params: t.Object({
+        id: t.String({ description: '用户 ID' }),
+      }),
+      response: {
+        200: UserResponse,
+        404: UserError,
+      },
     })
     // ==================== 头像上传 ====================
     .post('/avatar', async ({ jwt, bearer, status, body: { avatar } }) => {
@@ -161,7 +175,7 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       isSignIn: true,
       detail: {
         summary: '上传头像',
-        description: '上传用户头像图片，支持 JPG、PNG、GIF、WebP 格式，最大 5MB',
+        description: '上传用户头像图片，支持 JPG、PNG、GIF、WebP 格式，最大 5MB。上传成功后自动更新用户头像并返回访问 URL。',
         tags: ['用户管理'],
       },
       body: t.Object({
@@ -170,10 +184,7 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         }),
       }),
       response: {
-        200: t.Object({
-          message: t.String({ description: '提示信息' }),
-          avatar: t.String({ description: '头像 URL' }),
-        }),
+        200: AvatarUploadResponse,
         400: UserError,
         401: UserError,
         404: UserError,
