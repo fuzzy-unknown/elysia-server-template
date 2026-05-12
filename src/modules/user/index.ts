@@ -1,8 +1,10 @@
-/** 用户管理路由层 */
 import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import type { UserType } from './model'
+/** 用户管理路由层 */
+import { staticPlugin } from '@elysia/static'
 import { Elysia, t } from 'elysia'
 import { authPlugin } from '../../plugins/auth'
+import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage } from '../../utils'
 import { CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
 import { userService } from './service'
 
@@ -11,24 +13,18 @@ function omitPassword(user: UserType) {
   return rest
 }
 
-/** 从请求头提取设备信息 */
-function getDeviceInfo(request: Request) {
-  const userAgent = request.headers.get('user-agent') || ''
-  const deviceType = userAgent.includes('iPhone')
-    ? 'ios'
-    : userAgent.includes('Android')
-      ? 'android'
-      : 'web'
-  return {
-    deviceType,
-    deviceModel: request.headers.get('x-device-model') ?? undefined,
-    appVersion: request.headers.get('x-app-version') ?? undefined,
-    osVersion: request.headers.get('x-os-version') ?? undefined,
-  }
-}
-
 export function createUserRouter(database: BunSQLiteDatabase) {
+  // 确保头像上传目录存在
+  ensureDir('uploads/avatars')
+
   return new Elysia({ prefix: '/users' })
+    // 静态文件服务，用于访问上传的头像
+    .use(
+      staticPlugin({
+        assets: 'uploads/avatars',
+        prefix: '/avatars',
+      }),
+    )
     .use(authPlugin)
     .model({
       'user.response': UserResponse,
@@ -55,12 +51,9 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       const token = await jwt.sign({ userId: user.id })
 
       // 4. 更新登录信息（设备、IP、时间）
-      const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0].trim()
-        || request.headers.get('x-real-ip')
-        || server?.requestIP?.(request)?.address
-        || '127.0.0.1'
+      const clientIP = getClientIP(request, server)
       const deviceInfo = getDeviceInfo(request)
-      userService.updateLoginInfo(database, user.id, deviceInfo, clientIP || '127.0.0.1')
+      userService.updateLoginInfo(database, user.id, deviceInfo, clientIP)
 
       return { token, user: omitPassword(user) }
     }, {
@@ -137,5 +130,53 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       },
       params: t.Object({ id: t.String({ description: '用户 ID' }) }),
       response: { 200: UserResponse, 404: UserError },
+    })
+    // ==================== 头像上传 ====================
+    .post('/avatar', async ({ jwt, bearer, status, body: { avatar } }) => {
+      // 1. 验证 token 获取用户 ID
+      const payload = await jwt.verify(bearer!)
+      if (!payload)
+        return status(401, { message: '未登录或登录已过期' })
+
+      // 2. 验证图片文件
+      const validation = validateImage(avatar)
+      if (!validation.valid)
+        return status(400, { message: validation.error! })
+
+      // 3. 生成唯一文件名
+      const filename = generateFilename(avatar.name, payload.userId)
+      const filepath = `uploads/avatars/${filename}`
+
+      // 4. 保存文件
+      await Bun.write(filepath, avatar)
+
+      // 5. 更新用户头像
+      const avatarUrl = `/avatars/${filename}`
+      const user = userService.updateAvatar(database, payload.userId, avatarUrl)
+      if (!user)
+        return status(404, { message: '用户不存在' })
+
+      return { message: '头像上传成功', avatar: avatarUrl }
+    }, {
+      isSignIn: true,
+      detail: {
+        summary: '上传头像',
+        description: '上传用户头像图片，支持 JPG、PNG、GIF、WebP 格式，最大 5MB',
+        tags: ['用户管理'],
+      },
+      body: t.Object({
+        avatar: t.File({
+          description: '头像图片文件',
+        }),
+      }),
+      response: {
+        200: t.Object({
+          message: t.String({ description: '提示信息' }),
+          avatar: t.String({ description: '头像 URL' }),
+        }),
+        400: UserError,
+        401: UserError,
+        404: UserError,
+      },
     })
 }

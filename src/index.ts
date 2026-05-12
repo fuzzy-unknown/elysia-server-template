@@ -5,16 +5,17 @@
 import { cors } from '@elysia/cors'
 import { openapi } from '@elysia/openapi'
 import { Elysia } from 'elysia'
+import { serverConfig } from './config'
 import { userModule } from './modules'
 import { requestLog } from './plugins/request-log'
 
 const app = new Elysia()
-  .use(cors())
+  .use(cors(serverConfig.cors))
   .use(requestLog)
   .use(openapi())
-  .use(new Elysia({ prefix: '/api' }).use(userModule))
+  .use(new Elysia({ prefix: serverConfig.apiPrefix }).use(userModule))
   .get('/', () => 'Hello World !')
-  .listen(3010)
+  .listen(serverConfig.port)
 
 console.log(`
 服务器地址：${app.server?.hostname}:${app.server?.port}

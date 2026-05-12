@@ -17,6 +17,7 @@
     "@elysia/cors": "^1.4.2",
     "@elysia/eden": "^1.4.10",
     "@elysia/openapi": "^1.4.15",
+    "@elysia/static": "^1.4.11",
     "@elysiajs/jwt": "^1.4.2",
     "chalk": "^5.6.2",
     "drizzle-orm": "^0.45.2",

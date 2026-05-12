@@ -68,6 +68,11 @@ export const userService = {
     }).where(and(eq(users.id, id), isNull(users.deletedAt))).returning().get() ?? null
   },
 
+  /** 更新用户头像 */
+  updateAvatar(db: BunSQLiteDatabase, id: string, avatar: string): UserRow | null {
+    return db.update(users).set({ avatar }).where(and(eq(users.id, id), isNull(users.deletedAt))).returning().get() ?? null
+  },
+
   remove(db: BunSQLiteDatabase, id: string): UserRow | null {
     return db.update(users).set({ deletedAt: new Date() }).where(and(eq(users.id, id), isNull(users.deletedAt))).returning().get() ?? null
   },

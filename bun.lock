@@ -9,6 +9,7 @@
         "@elysia/cors": "^1.4.2",
         "@elysia/eden": "^1.4.10",
         "@elysia/openapi": "^1.4.15",
+        "@elysia/static": "^1.4.11",
         "@elysiajs/jwt": "^1.4.2",
         "chalk": "^5.6.2",
         "drizzle-orm": "^0.45.2",
@@ -58,6 +59,8 @@
     "@elysia/eden": ["@elysia/eden@1.4.10", "https://registry.npmmirror.com/@elysia/eden/-/eden-1.4.10.tgz", { "peerDependencies": { "elysia": ">=1.4.19" } }, "sha512-vcZXQcW6wZj6rhTxaiTkuCbVuS/yAJQ9jqCM6b83a5hu99F5Aj3HOyWXL17iod2Rz+pJpYsQGX0XaeoCsMpw2g=="],
 
     "@elysia/openapi": ["@elysia/openapi@1.4.15", "https://registry.npmmirror.com/@elysia/openapi/-/openapi-1.4.15.tgz", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-MrVGCPo5hnRF4/yWGOyH5ddjt4DlSIbeC5rrkupQtHY8TEQe+XdJa2YM9aUOrtgtRcy4UNGyiVlLl/jllPkPQA=="],
+
+    "@elysia/static": ["@elysia/static@1.4.11", "https://registry.npmmirror.com/@elysia/static/-/static-1.4.11.tgz", { "peerDependencies": { "elysia": ">= 1.4.0" } }, "sha512-L3PN8V+cgz9Oz9kTow7ed3DHHCTHb9ZqZZDLxmKhrIKcFmWvjqzTm9TcMR2aLKjjls+QMSGuB7ZyaO+usIXovA=="],
 
     "@elysiajs/jwt": ["@elysiajs/jwt@1.4.2", "https://registry.npmmirror.com/@elysiajs/jwt/-/jwt-1.4.2.tgz", { "dependencies": { "jose": "^6.0.11" }, "peerDependencies": { "elysia": ">= 1.4.27" } }, "sha512-gSPjF8KoL7cQIxL3kb+Ui9g5jpBdO4iUTe2+F52w66JVFct2K8cTLum8PEArxRZNg4PBrg100h6i1bJ2zfcqMg=="],
 
