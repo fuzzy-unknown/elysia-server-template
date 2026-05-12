@@ -5,7 +5,7 @@ import { Elysia, t } from 'elysia'
 import { strictRateLimit } from '../../middleware/rate-limit'
 import { authPlugin } from '../../plugins/auth'
 import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage } from '../../utils'
-import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
+import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UpdateUser, UserError, UserResponse } from './model'
 import { userService } from './service'
 
 function omitPassword(user: UserType) {
@@ -196,6 +196,40 @@ export function createUserRouter(database: BunSQLiteDatabase) {
         400: UserError,
         401: UserError,
         404: UserError,
+      },
+    })
+    // ==================== 刷新 Token ====================
+    .post('/refresh-token', async ({ jwt, body, status }) => {
+      // 验证 refreshToken
+      const { refreshToken } = body
+
+      try {
+        const payload = await jwt.verify(refreshToken)
+        if (!payload || !payload.userId) {
+          return status(401, { message: '无效的刷新 token' })
+        }
+
+        // 签发新的 access token
+        const newToken = await jwt.sign({ userId: payload.userId })
+
+        return {
+          token: newToken,
+          refreshToken, // 返回原 refreshToken
+        }
+      }
+      catch {
+        return status(401, { message: '无效的刷新 token' })
+      }
+    }, {
+      detail: {
+        summary: '刷新 Token',
+        description: '使用刷新 token 获取新的 access token。当 access token 过期后，可以使用此接口无感刷新。',
+        tags: ['用户管理'],
+      },
+      body: RefreshTokenRequest,
+      response: {
+        200: RefreshTokenResponse,
+        401: UserError,
       },
     })
 }

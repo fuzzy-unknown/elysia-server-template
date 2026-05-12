@@ -87,6 +87,17 @@ export const AvatarUploadResponse = t.Object({
   avatar: t.String({ description: '头像 URL' }),
 })
 
+/** 刷新 Token 请求 */
+export const RefreshTokenRequest = t.Object({
+  refreshToken: t.String({ description: '刷新 token' }),
+})
+
+/** 刷新 Token 响应 */
+export const RefreshTokenResponse = t.Object({
+  token: t.String({ description: '新的 access token' }),
+  refreshToken: t.String({ description: '新的刷新 token' }),
+})
+
 export type UserType = typeof User.static
 export type UserResponseType = typeof UserResponse.static
 export type CreateUserType = typeof CreateUser.static
@@ -94,3 +105,5 @@ export type UpdateUserType = typeof UpdateUser.static
 export type LoginRequestType = typeof LoginRequest.static
 export type LoginResponseType = typeof LoginResponse.static
 export type AvatarUploadResponseType = typeof AvatarUploadResponse.static
+export type RefreshTokenRequestType = typeof RefreshTokenRequest.static
+export type RefreshTokenResponseType = typeof RefreshTokenResponse.static
