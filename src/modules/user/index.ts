@@ -2,6 +2,7 @@ import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import type { UserType } from './model'
 /** 用户管理路由层 */
 import { Elysia, t } from 'elysia'
+import { strictRateLimit } from '../../middleware/rate-limit'
 import { authPlugin } from '../../plugins/auth'
 import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage } from '../../utils'
 import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, UpdateUser, UserError, UserResponse } from './model'
@@ -26,6 +27,8 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       'user.login': LoginRequest,
       'user.login.response': LoginResponse,
     })
+    // 登录接口限流（10 请求/分钟）
+    .use(strictRateLimit)
     .post('/login', async ({ jwt, body, status, request, server }) => {
       // 1. 根据账号（用户名/手机号/邮箱）查找用户
       const user = userService.getByAccount(database, body.account)
@@ -58,6 +61,11 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       response: {
         200: LoginResponse,
         401: UserError,
+        429: t.Object({
+          success: t.Boolean(),
+          message: t.String(),
+          retryAfter: t.Integer(),
+        }),
       },
     })
     .get('/', () => userService.getAll(database).map(omitPassword), {
