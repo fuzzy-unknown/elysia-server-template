@@ -6,7 +6,7 @@ import { loginLock, recordLoginFailure, recordLoginSuccess } from '../../middlew
 import { strictRateLimit } from '../../middleware/rate-limit'
 import { authPlugin } from '../../plugins/auth'
 import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage, validatePassword } from '../../utils'
-import { AvatarUploadResponse, CreateUser, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UpdateUser, UserError, UserResponse } from './model'
+import { AvatarUploadResponse, ChangePasswordRequest, CreateUser, LoginRequest, LoginResponse, RefreshTokenRequest, RefreshTokenResponse, UpdateUser, UserError, UserResponse } from './model'
 import { userService } from './service'
 
 function omitPassword(user: UserType) {
@@ -251,6 +251,56 @@ export function createUserRouter(database: BunSQLiteDatabase) {
       response: {
         200: RefreshTokenResponse,
         401: UserError,
+      },
+    })
+    // ==================== 修改密码 ====================
+    .post('/change-password', async ({ jwt, bearer, body, status }) => {
+      // 1. 验证 token 获取用户 ID
+      const payload = await jwt.verify(bearer!)
+      if (!payload)
+        return status(401, { message: '未登录或登录已过期' })
+
+      const { oldPassword, newPassword } = body
+
+      // 2. 验证新密码强度
+      const passwordValidation = validatePassword(newPassword)
+      if (!passwordValidation.valid) {
+        return status(400, { message: passwordValidation.errors.join(', ') })
+      }
+
+      // 3. 获取当前用户，验证原密码
+      const user = userService.getById(database, payload.userId)
+      if (!user)
+        return status(404, { message: '用户不存在' })
+
+      if (!user.password)
+        return status(400, { message: '当前用户未设置密码' })
+
+      const valid = await Bun.password.verify(oldPassword, user.password)
+      if (!valid)
+        return status(400, { message: '原密码错误' })
+
+      // 4. 更新密码
+      const updated = await userService.update(database, payload.userId, { password: newPassword })
+      if (!updated)
+        return status(404, { message: '用户不存在' })
+
+      return { message: '密码修改成功' }
+    }, {
+      isSignIn: true,
+      detail: {
+        summary: '修改密码',
+        description: '修改当前登录用户的密码。需要提供原密码，新密码必须满足密码强度要求。',
+        tags: ['用户管理'],
+      },
+      body: ChangePasswordRequest,
+      response: {
+        200: t.Object({
+          message: t.String({ description: '提示信息' }),
+        }),
+        400: UserError,
+        401: UserError,
+        404: UserError,
       },
     })
 }

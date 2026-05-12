@@ -102,6 +102,16 @@ export const RefreshTokenResponse = t.Object({
   refreshToken: t.String({ description: '新的刷新 token' }),
 })
 
+/** 修改密码请求 */
+export const ChangePasswordRequest = t.Object({
+  oldPassword: t.String({ minLength: 1, description: '原密码' }),
+  newPassword: t.String({
+    minLength: 8,
+    maxLength: 100,
+    description: '新密码（最少 8 位，必须包含大小写字母和数字）',
+  }),
+})
+
 export type UserType = typeof User.static
 export type UserResponseType = typeof UserResponse.static
 export type CreateUserType = typeof CreateUser.static
@@ -111,3 +121,4 @@ export type LoginResponseType = typeof LoginResponse.static
 export type AvatarUploadResponseType = typeof AvatarUploadResponse.static
 export type RefreshTokenRequestType = typeof RefreshTokenRequest.static
 export type RefreshTokenResponseType = typeof RefreshTokenResponse.static
+export type ChangePasswordRequestType = typeof ChangePasswordRequest.static
