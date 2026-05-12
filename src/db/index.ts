@@ -8,6 +8,18 @@
  */
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { users } from './schema'
 
 const sqlite = new Database('./sqlite.db')
 export const db = drizzle(sqlite)
+
+/** 健康检查 - 验证数据库连接 */
+export function checkDbConnection(): boolean {
+  try {
+    db.select().from(users).limit(1).get()
+    return true
+  }
+  catch {
+    return false
+  }
+}

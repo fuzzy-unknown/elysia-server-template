@@ -8,11 +8,14 @@ import { staticPlugin } from '@elysia/static'
 import { Elysia } from 'elysia'
 import { serverConfig } from './config'
 import { userModule } from './modules'
+import { healthModule } from './modules/health'
 import { requestLog } from './plugins/request-log'
 
 const app = new Elysia()
   .use(cors(serverConfig.cors))
   .use(requestLog)
+  // 健康检查接口（不需要认证，前缀 /health）
+  .use(healthModule)
   .use(new Elysia({ prefix: serverConfig.apiPrefix }).use(userModule))
   // OpenAPI 文档（只文档化 API 路由）
   .use(openapi())
