@@ -1,4 +1,5 @@
 export * from './device'
 export * from './file'
+export * from './pagination'
 export * from './response'
 export * from './validate-password'
