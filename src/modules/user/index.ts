@@ -2,6 +2,7 @@ import type { BunSQLiteDatabase } from 'drizzle-orm/bun-sqlite'
 import type { UserType } from './model'
 /** 用户管理路由层 */
 import { Elysia, t } from 'elysia'
+import { loginLock, recordLoginFailure, recordLoginSuccess } from '../../middleware/login-lock'
 import { strictRateLimit } from '../../middleware/rate-limit'
 import { authPlugin } from '../../plugins/auth'
 import { ensureDir, generateFilename, getClientIP, getDeviceInfo, validateImage, validatePassword } from '../../utils'
@@ -29,24 +30,37 @@ export function createUserRouter(database: BunSQLiteDatabase) {
     })
     // 登录接口限流（10 请求/分钟）
     .use(strictRateLimit)
+    .use(loginLock)
     .post('/login', async ({ jwt, body, status, request, server }) => {
+      // 获取客户端标识用于登录失败记录
+      const clientIP = getClientIP(request, server)
+      const identifier = clientIP
+
       // 1. 根据账号（用户名/手机号/邮箱）查找用户
       const user = userService.getByAccount(database, body.account)
-      if (!user)
+      if (!user) {
+        recordLoginFailure(identifier)
         return status(401, { message: '账号或密码错误' })
+      }
 
       // 2. 验证密码（密码为 null 时直接返回失败）
-      if (!user.password)
+      if (!user.password) {
+        recordLoginFailure(identifier)
         return status(401, { message: '账号或密码错误' })
+      }
       const valid = await Bun.password.verify(body.password, user.password)
-      if (!valid)
+      if (!valid) {
+        recordLoginFailure(identifier)
         return status(401, { message: '账号或密码错误' })
+      }
 
-      // 3. 签发 JWT token
+      // 3. 登录成功，重置失败计数
+      recordLoginSuccess(identifier)
+
+      // 4. 签发 JWT token
       const token = await jwt.sign({ userId: user.id })
 
-      // 4. 更新登录信息（设备、IP、时间）
-      const clientIP = getClientIP(request, server)
+      // 5. 更新登录信息（设备、IP、时间）
       const deviceInfo = getDeviceInfo(request)
       userService.updateLoginInfo(database, user.id, deviceInfo, clientIP)
 
